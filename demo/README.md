@@ -41,7 +41,11 @@ your real project instead of their sample data.
 
 - Artifact Registry Docker repository (the baked serve image)
 - Two service accounts: `sal-builder` (runs the pipeline below) and `sal-run` (the Cloud Run
-  runtime identity, granted nothing beyond the defaults since the image is self-contained)
+  runtime identity, granted nothing beyond the defaults since the image is self-contained).
+  `roles/iam.serviceAccountUser` on `sal-builder` is granted to whichever identity ran
+  `terraform apply` (via a `google_client_openid_userinfo` lookup), since being able to use
+  `sal-builder`'s own permissions is separate from `sal-builder` having them — if someone else
+  needs to run `gcloud builds submit`, add them with the `builder_impersonators` variable.
 - The Cloud Run service shell, created with a placeholder image and `min_instance_count = 0`.
   Terraform never manages the *running* image after the first deploy (see the `lifecycle`
   block on `google_cloud_run_v2_service.sal`) — `cloudbuild.yaml`'s deploy step owns that.

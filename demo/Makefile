@@ -72,7 +72,7 @@ apply: init
 # nothing to keep in sync by hand between Terraform and the build.
 build: check-repo init
 	gcloud builds submit "$(ROOT_DIR)" \
-		--config=demo/cloudbuild.yaml \
+		--config="$(TF_DIR)cloudbuild.yaml" \
 		--service-account="projects/$$($(TF) output -raw project_id)/serviceAccounts/$$($(TF) output -raw sal_builder_service_account_email)" \
 		--substitutions="_SAL_PROJECT_REPO=$(SAL_PROJECT_REPO),_SAL_BUILD_PATH=$(SAL_BUILD_PATH),_AR_IMAGE=$$($(TF) output -raw ar_image),_SERVICE_NAME=$$($(TF) output -raw service_name),_REGION=$$($(TF) output -raw region)"
 

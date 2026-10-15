@@ -28,6 +28,12 @@ variable "sal_builder_service_account_id" {
   default     = "geoconnex-sal-builder"
 }
 
+variable "builder_impersonators" {
+  description = "Extra members (e.g. \"user:you@example.com\", \"group:team@example.com\") granted roles/iam.serviceAccountUser on sal-builder, in addition to whoever ran `terraform apply`. Only needed if a different person runs `gcloud builds submit` than the one who applied this Terraform."
+  type        = list(string)
+  default     = []
+}
+
 variable "cloud_run_service_account_id" {
   description = "Service account the Cloud Run revision runs `sal serve` as."
   type        = string

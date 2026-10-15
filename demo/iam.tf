@@ -8,6 +8,28 @@ resource "google_service_account" "sal_builder" {
   display_name = "sal build + deploy (geoconnex knowledge-and-insights)"
 }
 
+# Whoever runs `gcloud builds submit --service-account=...sal-builder` has
+# to be allowed to act as that service account — granting sal_builder
+# permissions on buckets/registries/Cloud Run doesn't grant *you* the right
+# to invoke a build as it. Defaults to whichever identity ran
+# `terraform apply`; add more with builder_impersonators if someone else
+# needs to run the build.
+data "google_client_openid_userinfo" "me" {}
+
+resource "google_service_account_iam_member" "applier_can_build_as_sal_builder" {
+  service_account_id = google_service_account.sal_builder.name
+  role               = "roles/iam.serviceAccountUser"
+  member             = "user:${data.google_client_openid_userinfo.me.email}"
+}
+
+resource "google_service_account_iam_member" "extra_builder_impersonators" {
+  for_each = toset(var.builder_impersonators)
+
+  service_account_id = google_service_account.sal_builder.name
+  role               = "roles/iam.serviceAccountUser"
+  member             = each.value
+}
+
 # A custom Cloud Build service account must be able to write its own build
 # logs; the legacy default service account gets this implicitly, a custom
 # one does not.
