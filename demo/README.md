@@ -61,14 +61,16 @@ nothing here turns on "CPU always allocated".
 What it deliberately does **not** manage: any schedule or trigger. You asked for harvest-on-demand
 only, so refreshing the data is always a manual `gcloud builds submit` (below), never automatic.
 
-## One-time setup
+## Deploying
+
+Every variable in `variables.tf` has a default — including `project_id`, which defaults to
+`"knowledge-and-insights"` — so there's no tfvars file to create. Double-check that default is
+actually your project's real ID (GCP project IDs can differ from a project's display name) before
+the first apply; if it isn't, override it without a file:
 
 ```sh
-cd demo
-cp terraform.tfvars.example terraform.tfvars   # fill in project_id
+make apply TF_APPLY_FLAGS='-var project_id=your-real-project-id'
 ```
-
-## Deploying
 
 `Makefile` wraps the `terraform apply` + `gcloud builds submit` flow below into one command, so
 you don't have to copy outputs between them by hand. It needs `terraform` and `gcloud` on `PATH`
@@ -93,8 +95,8 @@ it to take a lot longer (that one alone is multiple gigabytes).
 
 Prefer to run the steps yourself instead of through `make`? `terraform output build_command`
 prints the equivalent `gcloud builds submit` command with every substitution except
-`_SAL_PROJECT_REPO` already filled in from your tfvars — fill that in and run it from the root of
-this geoconnex-salmodule checkout (not from `demo/`; the build context needs `demo/Dockerfile`).
+`_SAL_PROJECT_REPO` already filled in — fill that in and run it from the root of this
+geoconnex-salmodule checkout (not from `demo/`; the build context needs `demo/Dockerfile`).
 
 Either way, once it finishes:
 

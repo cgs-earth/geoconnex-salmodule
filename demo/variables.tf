@@ -1,6 +1,7 @@
 variable "project_id" {
   description = "The GCP project ID to deploy into (e.g. the real project ID behind the \"knowledge-and-insights\" project, which may differ from its display name)."
   type        = string
+  default     = "knowledge-and-insights"
 }
 
 variable "region" {
@@ -18,19 +19,19 @@ variable "service_name" {
 variable "artifact_registry_repository_id" {
   description = "Artifact Registry repository (Docker format) that holds the built `sal serve` image."
   type        = string
-  default     = "sal"
+  default     = "geoconnex-sal"
 }
 
 variable "sal_builder_service_account_id" {
   description = "Service account Cloud Build runs the harvest + image build + deploy as."
   type        = string
-  default     = "sal-builder"
+  default     = "geoconnex-sal-builder"
 }
 
 variable "cloud_run_service_account_id" {
   description = "Service account the Cloud Run revision runs `sal serve` as."
   type        = string
-  default     = "sal-run"
+  default     = "geoconnex-sal-run"
 }
 
 variable "cloud_run_cpu" {

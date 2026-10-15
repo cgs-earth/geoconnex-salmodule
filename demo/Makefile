@@ -10,8 +10,10 @@
 #
 # Prerequisites: terraform and gcloud on PATH, gcloud already
 # authenticated (`gcloud auth login` + `gcloud config set project ...`,
-# or equivalent), and demo/terraform.tfvars filled in (see
-# terraform.tfvars.example).
+# or equivalent). Every variable in variables.tf has a default, so there
+# is no tfvars file to create; override one with -var/TF_VAR_* if a
+# default (e.g. project_id) doesn't match your setup — see
+# TF_APPLY_FLAGS below.
 #
 # Run the two halves separately with `make apply` / `make build` if you
 # only want one of them — e.g. `make build` again on its own to re-harvest
@@ -33,7 +35,7 @@ TF_APPLY_FLAGS ?=
 SAL_PROJECT_REPO ?=
 SAL_BUILD_PATH ?= data/
 
-.PHONY: help init plan apply build deploy url destroy check-tools check-tfvars check-repo
+.PHONY: help init plan apply build deploy url destroy check-tools check-repo
 
 help:
 	@echo "make deploy SAL_PROJECT_REPO=<git url>   # terraform apply, then harvest/build/deploy"
@@ -42,17 +44,13 @@ help:
 	@echo "make url                                 # print the deployed Cloud Run URL"
 	@echo "make plan                                # terraform plan"
 	@echo "make destroy                             # terraform destroy"
+	@echo
+	@echo "Override any variable without a tfvars file, e.g.:"
+	@echo "  make apply TF_APPLY_FLAGS='-var project_id=my-real-project-id'"
 
 check-tools:
 	@command -v terraform >/dev/null || { echo "error: terraform not on PATH"; exit 1; }
 	@command -v gcloud >/dev/null || { echo "error: gcloud not on PATH"; exit 1; }
-
-check-tfvars: check-tools
-	@test -f "$(TF_DIR)terraform.tfvars" || { \
-		echo "error: $(TF_DIR)terraform.tfvars not found."; \
-		echo "       cp demo/terraform.tfvars.example demo/terraform.tfvars, fill it in, and retry."; \
-		exit 1; \
-	}
 
 check-repo:
 	@test -n "$(SAL_PROJECT_REPO)" || { \
@@ -61,7 +59,7 @@ check-repo:
 		exit 1; \
 	}
 
-init: check-tfvars
+init: check-tools
 	$(TF) init
 
 plan: init

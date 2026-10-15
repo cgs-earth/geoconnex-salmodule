@@ -7,7 +7,8 @@
 #     --substitutions=_SAL_PROJECT_REPO=<your SAL project repo URL>,_AR_IMAGE=...,_SERVICE_NAME=...,_REGION=...
 #
 # (the terraform output "build_command" prints this with every substitution
-# except _SAL_PROJECT_REPO already filled in from your tfvars)
+# except _SAL_PROJECT_REPO already filled in; or just use `make deploy
+# SAL_PROJECT_REPO=...`, see demo/Makefile)
 steps:
   # Clones the existing SAL project repo (the one that declares the
   # JsonLdHarvester task instance with your ~10 sitemap ids) and builds it —
