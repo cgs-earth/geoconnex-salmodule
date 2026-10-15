@@ -39,6 +39,23 @@ resource "google_project_iam_member" "sal_builder_log_writer" {
   member  = google_service_account.sal_builder.member
 }
 
+# `gcloud builds submit` uploads the local source as a tarball into Cloud
+# Build's own auto-managed staging bucket ("<project>_cloudbuild"), then
+# the build reads it back from there. That read-back is automatic for the
+# legacy default Cloud Build service account, but not for a custom one —
+# without this, the build fails with "does not have storage.objects.get
+# access" on that bucket. Google creates this bucket lazily on first use,
+# so it must already exist once by the time this grant applies (true after
+# any `gcloud builds submit`, including a failed one — as in this repo's
+# case); a project that has truly never run a Cloud Build build may need
+# one no-op `gcloud builds submit` to create it before the first
+# `terraform apply` that includes this resource.
+resource "google_storage_bucket_iam_member" "sal_builder_read_build_source" {
+  bucket = "${var.project_id}_cloudbuild"
+  role   = "roles/storage.objectViewer"
+  member = google_service_account.sal_builder.member
+}
+
 resource "google_artifact_registry_repository_iam_member" "sal_builder_push" {
   project    = var.project_id
   location   = google_artifact_registry_repository.sal.location

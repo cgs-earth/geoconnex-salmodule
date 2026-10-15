@@ -70,8 +70,16 @@ apply: init
 
 # Substitutions are read back from the apply this depends on, so there is
 # nothing to keep in sync by hand between Terraform and the build.
+#
+# --project is passed explicitly rather than left to gcloud's ambient
+# `gcloud config get-value project` default: this build must run in the
+# same project Terraform deployed into, and relying on the CLI's active
+# project silently breaks the moment the two drift (e.g. you also work in
+# other GCP projects day to day) — the --service-account's project and the
+# build's own project have to match.
 build: check-repo init
 	gcloud builds submit "$(ROOT_DIR)" \
+		--project="$$($(TF) output -raw project_id)" \
 		--config="$(TF_DIR)cloudbuild.yaml" \
 		--service-account="projects/$$($(TF) output -raw project_id)/serviceAccounts/$$($(TF) output -raw sal_builder_service_account_email)" \
 		--substitutions="_SAL_PROJECT_REPO=$(SAL_PROJECT_REPO),_SAL_BUILD_PATH=$(SAL_BUILD_PATH),_AR_IMAGE=$$($(TF) output -raw ar_image),_SERVICE_NAME=$$($(TF) output -raw service_name),_REGION=$$($(TF) output -raw region)"

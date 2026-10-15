@@ -46,6 +46,13 @@ your real project instead of their sample data.
   `terraform apply` (via a `google_client_openid_userinfo` lookup), since being able to use
   `sal-builder`'s own permissions is separate from `sal-builder` having them — if someone else
   needs to run `gcloud builds submit`, add them with the `builder_impersonators` variable.
+  `sal-builder` is also granted `roles/storage.objectViewer` on Cloud Build's own auto-managed
+  `<project>_cloudbuild` staging bucket — without it, a custom build service account can't read
+  back the source tarball `gcloud builds submit` just uploaded there (the legacy default Cloud
+  Build service account gets this for free; a custom one doesn't). That bucket is created lazily
+  by Google on first use, so a project that has *never* run any Cloud Build build needs one
+  `gcloud builds submit` (even one that fails) before the first `terraform apply` that includes
+  this grant — not a concern once it already exists.
 - The Cloud Run service shell, created with a placeholder image and `min_instance_count = 0`.
   Terraform never manages the *running* image after the first deploy (see the `lifecycle`
   block on `google_cloud_run_v2_service.sal`) — `cloudbuild.yaml`'s deploy step owns that.
