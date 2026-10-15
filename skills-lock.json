@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "skills": {
+    "geoconnex-querying": {
+      "source": "internetofwater/geoconnex.us",
+      "sourceType": "github",
+      "skillPath": "skills/geoconnex-querying/SKILL.md",
+      "computedHash": "556bd00b4fae2b5200af25c832501c5cc6bcf6c7a4854cc00655382f1b1cfa06"
+    },
+    "sal": {
+      "source": "cgs-earth/sal",
+      "sourceType": "github",
+      "skillPath": "skills/sal/SKILL.md",
+      "computedHash": "c57b4ddab80a0099bcb3a338b42c00b1c84ea3c8aae001673bc26e0dafa44ec0"
+    },
+    "salmodule": {
+      "source": "cgs-earth/sal",
+      "sourceType": "github",
+      "skillPath": "skills/salmodule/SKILL.md",
+      "computedHash": "fc8d48306413b2cf8ee85d2006bd2947893080e6727fbe0997c96f9c3f803db1"
+    }
+  }
+}
