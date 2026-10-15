@@ -1,0 +1,22 @@
+# Example task instance for your *existing* SAL project repo (not this
+# one) — drop something like this into the RDF source cloudbuild.yaml
+# points `sal build` at (the _SAL_BUILD_PATH substitution, "data/" by
+# default). It harvests 10 small-to-medium Geoconnex sitemaps rather than
+# the whole catalog (which includes multi-gigabyte exports like
+# ref:hu12), so a manual rebuild stays fast. Swap in whichever sitemap_ids
+# from https://geoconnex.us/sitemap.xml you actually care about.
+@prefix salmodule: <https://w3id.org/sal/cgs-earth/sal/ontology/salmodule#> .
+@prefix geoconnex: <salmodule://github.com/cgs-earth/geoconnex-salmodule/> .
+
+<HarvestGeoconnex> a geoconnex:JsonLdHarvester ;
+    geoconnex:includeSitemaps
+        "ref:states",
+        "ref:aiannh",
+        "ref:nat_aq",
+        "ref:princi_aq",
+        "ref:sec_hydrg_reg",
+        "ref:cbsa",
+        "ref:counties",
+        "ref:dams",
+        "ref:ua10",
+        "ref:hu08" .

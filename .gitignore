@@ -1,1 +1,9 @@
 /geoconnex-salmodule
+
+# Terraform (demo/)
+**/.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+!terraform.tfvars.example
+crash.log
