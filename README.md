@@ -13,7 +13,7 @@ exports are multiple gigabytes.
 
 ## Ontology
 
-One task class, `JsonLdHarvester`, a `salmodule:NodeProducer`. It takes two optional,
+One task class, `JsonLdHarvester`, a `salmodule:Task`. It declares no `salmodule:stdoutShape`, so its output is not validated by `sal build`. It takes two optional,
 repeatable configuration properties, named after the `sitemap_id` values in
 [geoconnex.us/sitemap.xml](https://geoconnex.us/sitemap.xml) (e.g. `ref:states`,
 `usgs:monitoring_locations`):

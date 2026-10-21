@@ -18,7 +18,7 @@
       "@type": "owl:Class",
       "rdfs:label": "JSON-LD harvester",
       "rdfs:comment": "Reads the Geoconnex STAC catalog, streams the jsonld column of each matching sitemap's GeoParquet asset over HTTP range requests, and writes every feature's JSON-LD node to stdout unchanged.",
-      "rdfs:subClassOf": { "@id": "salmodule:NodeProducer" },
+      "rdfs:subClassOf": { "@id": "salmodule:Task" },
       "salmodule:taskShape": {
         "@type": "sh:NodeShape",
         "sh:targetClass": { "@id": "JsonLdHarvester" },
