@@ -4,7 +4,8 @@
     "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
     "sh": "http://www.w3.org/ns/shacl#",
     "xsd": "http://www.w3.org/2001/XMLSchema#",
-    "salmodule": "https://w3id.org/sal/salmodule#"
+    "salmodule": "https://w3id.org/sal/salmodule#",
+    "cgs-st": "https://w3id.org/cgs/ontology/core/spatiotemporal/"
   },
   "@graph": [
     {
