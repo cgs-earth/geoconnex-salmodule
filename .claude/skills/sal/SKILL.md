@@ -74,16 +74,20 @@ Imports are recorded on the project ontology node in `.sal/config.jsonld` and fe
 
 A SAL module is a git repository with a Dockerfile that produces triples on demand. Reference it with
 a `salmodule://[HOST/]OWNER/REPO/` prefix, which must end in a slash, and type an instance with a
-class from the module's ontology plus a task base class:
+class from the module's ontology; add `salmodule:Task` when the module's ontology does not already
+declare that class a task:
 
 ```turtle
-@prefix salmodule: <https://w3id.org/sal/cgs-earth/sal/ontology/salmodule#> .
+@prefix salmodule: <https://w3id.org/sal/salmodule#> .
 @prefix states: <salmodule://github.com/cgs-earth/python-geoconnex/> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
-<GeoconnexStates> a states:GeoconnexReferenceFeatureStates, salmodule:NodeProcessor ;
+<GeoconnexStates> a states:GeoconnexReferenceFeatureStates, salmodule:Task ;
     states:maxRetries "5"^^xsd:integer .
 ```
+
+- Never type an instance `salmodule:NodeProducer`, `salmodule:NodeConsumer`, or `salmodule:NodeProcessor`:
+  those are inferred from the shapes a task class declares, and `sal build` warns when a project asserts one.
 
 - Configure the task only with properties the module's own vocabulary defines; anything else on the
   instance is ignored when the task instance is serialized.
@@ -109,9 +113,20 @@ class from the module's ontology plus a task base class:
 ```sh
 sal push ghcr.io/org/product --username "$U" --password "$P"   # OCI artifact tagged latest and by commit
 sal clone ghcr.io/org/product:latest                           # clone source at that commit and restore .sal/data
-sal upload gs://bucket/                                        # copy the Iceberg table to an object store
+sal upload --bucket gs://bucket/                               # copy .sal/data to an object store
+sal rewrite --new-table-root gs://bucket/sal/triples           # point local Iceberg metadata at another root
 sal clean --wipe                                               # remove .sal/data and .sal/config.jsonld
 ```
+
+`sal init` also writes a `Makefile` whose targets are the commands above (`make validate`, `make build`,
+`make serve`, ...) plus the deployment: `sal terraform --project <gcp-project>` (or `sal init --with-iac`)
+writes `terraform/`, a Cloud Storage bucket plus a Cloud Run service running `sal serve --data /mnt/sal`
+over the bucket mounted with Cloud Storage FUSE, with small defaults and every knob a variable in
+`variables.tf`; `make apply`, `make upload` (`sal upload --bucket gs://<bucket>/`), and `make destroy`
+run it. `sal terraform` only writes files; nothing is created until `terraform apply`.
+
+`sal init --skills` installs this skill into `.claude/skills/sal` and `.agents/skills/sal`, which is
+also how to update it.
 
 ## Troubleshooting
 

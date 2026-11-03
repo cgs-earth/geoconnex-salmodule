@@ -26,8 +26,7 @@ func main() {
 		}
 	case "run":
 		if err := runTask(os.Stdout, os.Stderr); err != nil {
-			fmt.Fprintln(os.Stderr, err)
-			printErrorNode(os.Stdout, err)
+			printErrorNode(os.Stderr, err)
 			os.Exit(1)
 		}
 	default:

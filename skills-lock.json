@@ -11,13 +11,15 @@
       "source": "cgs-earth/sal",
       "sourceType": "github",
       "skillPath": "skills/sal/SKILL.md",
-      "computedHash": "c57b4ddab80a0099bcb3a338b42c00b1c84ea3c8aae001673bc26e0dafa44ec0"
+      "computedHash": "d968a79713edcaa8c2dfde4d297847235f1186de4b66877c3c83c8dfef78c635",
+      "installMode": "copy"
     },
     "salmodule": {
       "source": "cgs-earth/sal",
       "sourceType": "github",
       "skillPath": "skills/salmodule/SKILL.md",
-      "computedHash": "fc8d48306413b2cf8ee85d2006bd2947893080e6727fbe0997c96f9c3f803db1"
+      "computedHash": "c916515d914e70e32b6c306b41a8fb0432a5aa0f5af1f75f52c8458c023227f1",
+      "installMode": "copy"
     }
   }
 }

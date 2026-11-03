@@ -11,9 +11,15 @@ metadata:
 # SAL modules
 
 A SAL module is a git repository with a `Dockerfile` in its root; `sal init --salmodule` scaffolds one,
-asking for one sample task to seed `ontology.jsonld` with (`--bare` skips the questions), writing a
-`Dockerfile` and `.dockerignore` holding only a comment, and registering a JSON Schema for
-`ontology.jsonld` in `.vscode/` so an editor checks the ontology's structure as it is written. The image it builds is a CLI with
+opening a browser form that writes `ontology.jsonld` (or asking for one sample task at the prompt where
+no browser opens; `--bare` skips the questions), writing a `Dockerfile` and `.dockerignore` holding only
+a comment, and registering a JSON Schema for `ontology.jsonld` in `.vscode/` so an editor checks the
+ontology's structure as it is written. `sal edit`, run in the module, opens the same form on an
+existing `ontology.jsonld`: the module, its prefixes, and each task's configuration properties and
+output shape as rows, with the JSON-LD preview checked as it is edited, and below it a prompt for a
+coding agent (`sal edit --prompt` prints it) that lists the tasks, shapes, and a sample task instance
+to implement the module from. `sal init --salmodule --skills` installs this skill into
+`.claude/skills/salmodule` and `.agents/skills/salmodule`. The image it builds is a CLI with
 two subcommands. `sal` clones the repository, builds the image, and runs those subcommands; nothing
 else about the language, framework, or base image matters.
 
@@ -32,26 +38,38 @@ properties. `sal validate` only asks for the ontology; `sal build` runs tasks, u
 Print one JSON-LD document to stdout and exit 0. Requirements:
 
 - A `@context` that binds every prefix the module uses. It is injected into the task output later, so
-  any key a task emits must be resolvable through it.
+  any key a task emits must be resolvable through it. `salmodule` must be bound to exactly
+  `https://w3id.org/sal/salmodule#`: bound to anything else, `rdfs:subClassOf salmodule:Task` names a
+  class sal does not know, and sal refuses the module as one with no task to run.
 - A node `{"@id": ".", "@type": "owl:Ontology"}` describing the module.
 - The module's own terms as relative IRIs (`"@id": "MyTask"`, `"@id": "maxRetries"`). They resolve
   against the project's `salmodule://.../` prefix, which is why that prefix must end in a slash.
-- At least one task class: an `owl:Class` with `rdfs:subClassOf` one of `salmodule:Task`,
-  `salmodule:NodeProcessor`, `salmodule:NodeProducer`, or `salmodule:NodeConsumer`.
+- At least one task class: an `owl:Class` with `rdfs:subClassOf` `salmodule:Task`. Do not subclass
+  `salmodule:NodeProducer`, `salmodule:NodeConsumer`, or `salmodule:NodeProcessor`: the ontology defines
+  those by OWL axiom as a `Task` whose class declares a `salmodule:stdoutShape`, a `stdinShape`, or both,
+  so a reasoner infers them from the shapes. `sal` still runs a module that subclasses one, with a warning,
+  and the JSON schema refuses it.
 - Every configuration property as an `owl:DatatypeProperty` or `owl:ObjectProperty`, ideally with
   `rdfs:domain` and `rdfs:range`. A property the ontology does not declare never reaches the task.
-- Optional SHACL shapes on the task class: `salmodule:taskShape` (what a valid instance looks like),
-  `salmodule:stdinShape`, and `salmodule:stdoutShape` (what the task consumes and produces).
+- SHACL shapes on the task class, which are how a module declares its contract: `salmodule:taskShape`
+  (what a valid instance looks like), `salmodule:stdinShape` (what the task consumes),
+  `salmodule:stdoutShape` (what the task produces), and optionally `salmodule:stderrShape` (what the nodes
+  it reports on stderr look like, beyond the `rdfs:label` and `rdfs:comment` every `salmodule:Error` must carry). A task that
+  writes nodes to stdout should declare a `salmodule:stdoutShape`; `sal build` warns when the class has
+  none and runs the task unchecked.
   `salmodule:stdoutShape` is enforced: `sal build` validates every line the task writes against it, with the
   ontology's `@context` injected, and the first line that fails stops the container and fails the run with
   the shape's `sh:message`. Give the shape a target (`sh:targetClass` usually), and do not use
   `sh:languageIn`, `sh:uniqueLang`, `sh:disjoint`, `sh:qualifiedValueShapesDisjoint`, or `sh:sparql`.
-- Optional `salmodule:taskInstanceEnvVar` on the ontology node to rename the environment variable;
-  it defaults to `SALMODULE_TASK_INSTANCE`.
 - The JSON Schema at <https://raw.githubusercontent.com/cgs-earth/sal/main/specs/salmodule-ontology.schema.json>
   (the copy `sal init --salmodule` puts in `.vscode/`) encodes all of the above; validating a draft
   ontology against it catches a bare-string `rdfs:subClassOf`, a missing ontology node, or an
   unprefixed key in a shape before the module is ever built.
+- `sal validate`, run in the module repository, checks all of the above without building the image:
+  with `--salmodule`, or on its own when `ontology.jsonld` and a `Dockerfile` are both in the root, it
+  checks the ontology against the schema, that every relative term it uses is declared in `@graph`,
+  and that every shape is well-formed, reporting each problem as `ontology.jsonld:LINE: ...` next to
+  the usual undefined-term errors. Run it before `sal build` in a project that references the module.
 
 ```json
 {
@@ -60,7 +78,7 @@ Print one JSON-LD document to stdout and exit 0. Requirements:
     "owl": "http://www.w3.org/2002/07/owl#",
     "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
     "xsd": "http://www.w3.org/2001/XMLSchema#",
-    "salmodule": "https://w3id.org/sal/cgs-earth/sal/ontology/salmodule#"
+    "salmodule": "https://w3id.org/sal/salmodule#"
   },
   "@graph": [
     {"@id": ".", "@type": "owl:Ontology", "rdfs:label": "Weather stations"},
@@ -97,8 +115,12 @@ Write output as newline delimited JSON, one node object per line, using keys the
 - A relative `@id` resolves against the project's namespace, not the module's. Use absolute IRIs for
   anything owned by an external source.
 - Only stdout is data. Logs and progress go to stderr, which `sal` surfaces as warnings.
-- On failure, print an error node and exit non-zero; `sal` reports the message and fails the run:
-  `{"@type": "salmodule:Error", "rdfs:comment": "reference server returned 503"}`
+- On failure, print an error node on its own line to stderr and exit non-zero; `sal` reads every line of
+  stderr that is a JSON object as a node, reports the message, and fails the run:
+  `{"@type": "salmodule:Error", "rdfs:label": "Unreachable", "rdfs:comment": "reference server returned 503"}`
+  An error node must carry both an `rdfs:label` naming the error and an `rdfs:comment` describing it; `sal`
+  reports the failure as `label: comment`, and a node missing either still fails the run with a message
+  saying which it lacks. Never print an error node to stdout, where it would have to satisfy the output shape.
 
 ### Handing over files
 
@@ -168,6 +190,6 @@ build without rebuilding the sources, which is quicker while iterating on the mo
       and at least one class that subclasses a `salmodule:` task class.
 - [ ] Every configuration property is declared in the ontology.
 - [ ] `salmodule run` reads `SALMODULE_TASK_INSTANCE`, writes NDJSON to stdout, logs to stderr.
-- [ ] Failures print a `salmodule:Error` node and exit non-zero.
+- [ ] Failures print a `salmodule:Error` node carrying both `rdfs:label` and `rdfs:comment` to stderr and exit non-zero.
 - [ ] Files, or every file in a directory, are fully written before the line that references them with `file:///`.
 - [ ] Repository is pushed; `sal salmodule inspect` succeeds against it.

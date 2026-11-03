@@ -4,7 +4,7 @@
     "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
     "sh": "http://www.w3.org/ns/shacl#",
     "xsd": "http://www.w3.org/2001/XMLSchema#",
-    "salmodule": "https://w3id.org/sal/cgs-earth/sal/ontology/salmodule#"
+    "salmodule": "https://w3id.org/sal/salmodule#"
   },
   "@graph": [
     {
@@ -32,6 +32,24 @@
             "sh:path": { "@id": "excludeSitemaps" },
             "sh:datatype": { "@id": "xsd:string" },
             "sh:name": "excludeSitemaps"
+          }
+        ]
+      },
+      "salmodule:stderrShape": {
+        "@type": "sh:NodeShape",
+        "sh:targetClass": { "@id": "salmodule:Error" },
+        "sh:property": [
+          {
+            "sh:path": { "@id": "rdfs:label" },
+            "sh:datatype": { "@id": "xsd:string" },
+            "sh:minCount": 1,
+            "sh:message": "an error node must carry an rdfs:label naming the error"
+          },
+          {
+            "sh:path": { "@id": "rdfs:comment" },
+            "sh:datatype": { "@id": "xsd:string" },
+            "sh:minCount": 1,
+            "sh:message": "an error node must carry an rdfs:comment describing the error"
           }
         ]
       }

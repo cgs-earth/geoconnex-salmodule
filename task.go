@@ -86,9 +86,13 @@ func parseStringLiteral(raw json.RawMessage) (string, error) {
 	return "", fmt.Errorf("expected a string or {\"@value\": ...} literal, got %s", string(raw))
 }
 
+// printErrorNode writes a salmodule:Error node on its own line. sal reads
+// stderr, not stdout, for these, and requires both an rdfs:label and an
+// rdfs:comment.
 func printErrorNode(w io.Writer, err error) {
 	node := map[string]any{
 		"@type":        "salmodule:Error",
+		"rdfs:label":   "HarvestFailed",
 		"rdfs:comment": err.Error(),
 	}
 	enc, mErr := json.Marshal(node)

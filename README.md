@@ -26,7 +26,7 @@ repeatable configuration properties, named after the `sitemap_id` values in
 With neither set, every sitemap in the catalog is harvested.
 
 ```turtle
-@prefix salmodule: <https://w3id.org/sal/cgs-earth/sal/ontology/salmodule#> .
+@prefix salmodule: <https://w3id.org/sal/salmodule#> .
 @prefix geoconnex: <salmodule://github.com/cgs-earth/geoconnex-salmodule/> .
 
 <HarvestGeoconnex> a geoconnex:JsonLdHarvester ;
