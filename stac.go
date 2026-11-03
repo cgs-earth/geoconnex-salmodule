@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/url"
 	"sort"
+	"strings"
 )
 
 // defaultCatalogURL is the root of the Geoconnex STAC catalog. Every
@@ -28,6 +29,11 @@ type stacCollection struct {
 		Data struct {
 			Href string `json:"href"`
 		} `json:"data"`
+		// RDF is the parquet file holding the jsonld column; the "data"
+		// asset only carries the columnar feature attributes.
+		RDF struct {
+			Href string `json:"href"`
+		} `json:"rdf"`
 	} `json:"assets"`
 }
 
@@ -81,12 +87,18 @@ func listSitemapSources(client *http.Client, catalogURL string) ([]sitemapSource
 		if err := fetchJSON(client, childURL.String(), &collection); err != nil {
 			return nil, err
 		}
-		if collection.ID == "" || collection.Assets.Data.Href == "" {
+		rdfURL := collection.Assets.RDF.Href
+		if rdfURL == "" && strings.Contains(collection.Assets.Data.Href, "/summoned/structured/") {
+			// Catalogs that predate the "rdf" asset: the jsonld parquet
+			// mirrors the data asset's path under summoned/rdf/.
+			rdfURL = strings.Replace(collection.Assets.Data.Href, "/summoned/structured/", "/summoned/rdf/", 1)
+		}
+		if collection.ID == "" || rdfURL == "" {
 			continue
 		}
 		sources = append(sources, sitemapSource{
 			SitemapID:  collection.ID,
-			ParquetURL: collection.Assets.Data.Href,
+			ParquetURL: rdfURL,
 		})
 	}
 
